@@ -112,7 +112,7 @@ const EnvironmentReflection: React.FC<{ frame: number; totalFrames: number }> = 
         background:
           "linear-gradient(180deg, rgba(245,230,211,0.08) 0%, rgba(232,180,184,0.05) 35%, rgba(212,229,247,0.04) 65%, rgba(5,5,5,0.95) 100%)",
         mixBlendMode: "screen",
-        opacity: 0.7,
+        opacity: 0.4,
       }}
     />
   );
@@ -134,7 +134,7 @@ const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, t
         marginTop: -500,
         borderRadius: "50%",
         background: `conic-gradient(from ${r1}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 20%, #c0c0c0 40%, #1a1a1a 60%, #e8e8e8 80%, #f5e6d3 100%)`,
-        filter: "blur(2px) contrast(1.4) saturate(0.3)",
+        filter: "blur(1px) contrast(1.5) saturate(0.25)",
         mixBlendMode: "screen",
         opacity: 0.9,
       }}
@@ -159,7 +159,7 @@ const KeyLight: React.FC<{ frame: number; totalFrames: number }> = ({ frame, tot
         borderRadius: "50%",
         background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(245,230,211,0.5) 25%, transparent 65%)",
         mixBlendMode: "screen",
-        filter: "blur(35px)",
+        filter: "blur(20px)",
       }}
     />
   );
@@ -177,8 +177,8 @@ const FillLight: React.FC = () => (
       marginTop: -275,
       borderRadius: "50%",
       background: "radial-gradient(circle, rgba(232,180,184,0.6) 0%, rgba(232,180,184,0.15) 35%, transparent 70%)",
-      mixBlendMode: "screen",
-      filter: "blur(55px)",
+        mixBlendMode: "screen",
+        filter: "blur(25px)",
     }}
   />
 );
@@ -194,8 +194,8 @@ const RimLight: React.FC = () => (
       marginLeft: -175,
       marginTop: -450,
       background: "linear-gradient(180deg, transparent 25%, rgba(212,229,247,0.35) 50%, transparent 75%)",
-      mixBlendMode: "screen",
-      filter: "blur(35px)",
+        mixBlendMode: "screen",
+        filter: "blur(15px)",
     }}
   />
 );
@@ -288,8 +288,8 @@ const getShape = (t: number, seed: number) => {
   return {
     scale: 0.75 + Math.abs(s) * 0.5,
     borderRadius: br,
-    blur: 22 + Math.abs(s) * 18,
-    contrast: 16 + Math.abs(s) * 8,
+    blur: 6 + Math.abs(s) * 10,
+    contrast: 22 + Math.abs(s) * 12,
     saturate: 0.7 + Math.abs(s) * 0.6,
     brightness: 0.9 + Math.abs(s2) * 0.3,
     opacity: 0.75 + Math.abs(s) * 0.2,
