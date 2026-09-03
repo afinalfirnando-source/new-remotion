@@ -13,9 +13,9 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const SPHERE_COUNT = 36;
-const SPHERE_SIZE_MIN = 700;
-const SPHERE_SIZE_MAX = 1400;
+const SPHERE_COUNT = 18;
+const SPHERE_SIZE_MIN = 420;
+const SPHERE_SIZE_MAX = 860;
 
 interface Sphere {
   id: number;
@@ -39,20 +39,20 @@ const SPHERES: Sphere[] = Array.from({ length: SPHERE_COUNT }, (_, i) => {
   };
 });
 
-const SPECULARS = Array.from({ length: 10 }, (_, i) => {
+const SPECULARS = Array.from({ length: 8 }, (_, i) => {
   const r = mulberry32(2000 + i);
-  const speeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const speeds = [1, 2, 3, 4, 5, 6, 7, 8];
   return {
     id: i,
     angle: r() * TAU,
-    dist: 15 + r() * 20,
-    size: 2 + r() * 7,
+    dist: 18 + r() * 22,
+    size: 2 + r() * 6,
     speed: speeds[i % speeds.length],
     phase: r() * TAU,
   };
 });
 
-const GRAIN = Array.from({ length: 200 }, (_, i) => {
+const GRAIN = Array.from({ length: 180 }, (_, i) => {
   const r = mulberry32(3000 + i);
   return { x: r() * 100, y: r() * 100 };
 });
@@ -71,10 +71,10 @@ const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, t
         position: "absolute",
         top: "50%",
         left: "50%",
-        width: 2400,
-        height: 2400,
-        marginLeft: -1200,
-        marginTop: -1200,
+        width: 1600,
+        height: 1600,
+        marginLeft: -800,
+        marginTop: -800,
         borderRadius: "50%",
         background: `conic-gradient(from ${r1}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 20%, #c0c0c0 40%, #1a1a1a 60%, #e8e8e8 80%, #f5e6d3 100%)`,
         mixBlendMode: "screen",
@@ -91,7 +91,7 @@ const ChromeSphere: React.FC<{
 }> = ({ sphere, frame, totalFrames }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
-  const pulse = 0.9 + 0.1 * Math.sin(t * TAU * 2 + sphere.phase);
+  const pulse = 0.92 + 0.08 * Math.sin(t * TAU * 2 + sphere.phase);
   const size = sphere.size * pulse;
 
   return (
