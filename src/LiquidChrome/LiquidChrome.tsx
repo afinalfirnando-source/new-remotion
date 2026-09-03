@@ -13,13 +13,15 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const SPHERE_COUNT = 24;
-const SPHERE_SIZE = 520;
+const SPHERE_COUNT = 36;
+const SPHERE_SIZE_MIN = 700;
+const SPHERE_SIZE_MAX = 1400;
 
 interface Sphere {
   id: number;
   x: number;
   y: number;
+  size: number;
   speed: number;
   phase: number;
 }
@@ -31,25 +33,26 @@ const SPHERES: Sphere[] = Array.from({ length: SPHERE_COUNT }, (_, i) => {
     id: i,
     x: r() * 100,
     y: r() * 100,
+    size: SPHERE_SIZE_MIN + r() * (SPHERE_SIZE_MAX - SPHERE_SIZE_MIN),
     speed: speeds[i % speeds.length],
     phase: r() * TAU,
   };
 });
 
-const SPECULARS = Array.from({ length: 8 }, (_, i) => {
+const SPECULARS = Array.from({ length: 10 }, (_, i) => {
   const r = mulberry32(2000 + i);
-  const speeds = [1, 2, 3, 4, 5, 6, 7, 8];
+  const speeds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   return {
     id: i,
     angle: r() * TAU,
-    dist: 18 + r() * 22,
-    size: 2 + r() * 6,
+    dist: 15 + r() * 20,
+    size: 2 + r() * 7,
     speed: speeds[i % speeds.length],
     phase: r() * TAU,
   };
 });
 
-const GRAIN = Array.from({ length: 180 }, (_, i) => {
+const GRAIN = Array.from({ length: 200 }, (_, i) => {
   const r = mulberry32(3000 + i);
   return { x: r() * 100, y: r() * 100 };
 });
@@ -58,6 +61,29 @@ const Background: React.FC = () => (
   <div style={{ position: "absolute", inset: 0, background: "#050505" }} />
 );
 
+const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
+  const t = frame / totalFrames;
+  const r1 = t * 360;
+  const r2 = -t * 180;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: 2400,
+        height: 2400,
+        marginLeft: -1200,
+        marginTop: -1200,
+        borderRadius: "50%",
+        background: `conic-gradient(from ${r1}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 20%, #c0c0c0 40%, #1a1a1a 60%, #e8e8e8 80%, #f5e6d3 100%)`,
+        mixBlendMode: "screen",
+        opacity: 0.9,
+      }}
+    />
+  );
+};
+
 const ChromeSphere: React.FC<{
   sphere: Sphere;
   frame: number;
@@ -65,8 +91,8 @@ const ChromeSphere: React.FC<{
 }> = ({ sphere, frame, totalFrames }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
-  const pulse = 0.92 + 0.08 * Math.sin(t * TAU * 2 + sphere.phase);
-  const size = SPHERE_SIZE * pulse;
+  const pulse = 0.9 + 0.1 * Math.sin(t * TAU * 2 + sphere.phase);
+  const size = sphere.size * pulse;
 
   return (
     <div
@@ -164,7 +190,7 @@ export const LiquidChrome: React.FC = () => {
   const { durationInFrames } = useVideoConfig();
 
   const t = frame / durationInFrames;
-  const globalRotation = t * 180;
+  const globalRotation = t * 360;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#050505", overflow: "hidden" }}>
@@ -178,6 +204,8 @@ export const LiquidChrome: React.FC = () => {
           transformOrigin: "center center",
         }}
       >
+        <BaseChrome frame={frame} totalFrames={durationInFrames} />
+
         {SPHERES.map((sphere) => (
           <ChromeSphere
             key={sphere.id}
