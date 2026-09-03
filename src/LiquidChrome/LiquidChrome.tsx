@@ -13,32 +13,6 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-interface Blob {
-  id: number;
-  cx: number;
-  cy: number;
-  r: number;
-  speed: number;
-  phase: number;
-  orbitSpeed: number;
-  orbitRadius: number;
-}
-
-const BLOBS: Blob[] = Array.from({ length: 5 }, (_, i) => {
-  const r = mulberry32(1000 + i);
-  const speeds = [1, 2, 3, 4, 5];
-  return {
-    id: i,
-    cx: 50,
-    cy: 50,
-    r: 140 + r() * 120,
-    speed: speeds[i % speeds.length],
-    phase: r() * TAU,
-    orbitSpeed: speeds[(i + 2) % speeds.length],
-    orbitRadius: 8 + r() * 15,
-  };
-});
-
 const SPECULARS = Array.from({ length: 6 }, (_, i) => {
   const r = mulberry32(2000 + i);
   const speeds = [1, 2, 3, 4, 5, 6];
@@ -64,6 +38,7 @@ const Background: React.FC = () => (
 const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
   const r1 = t * 360;
+  const r2 = -t * 180;
   return (
     <div
       style={{
@@ -115,67 +90,6 @@ const SpecularHighlights: React.FC<{ frame: number; totalFrames: number }> = ({ 
       })}
     </div>
   );
-};
-
-const MorphBlob: React.FC<{
-  blob: Blob;
-  frame: number;
-  totalFrames: number;
-  width: number;
-  height: number;
-}> = ({ blob, frame, totalFrames, width, height }) => {
-  const t = frame / totalFrames;
-  const angle = blob.phase + t * TAU * blob.orbitSpeed;
-  const orbitX = Math.cos(angle) * blob.orbitRadius;
-  const orbitY = Math.sin(angle) * blob.orbitRadius * 0.7;
-  const x = blob.cx + orbitX;
-  const y = blob.cy + orbitY;
-
-  const shape = getShape(t, blob.id);
-  const r = blob.r * shape.scale;
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: `${x}%`,
-        top: `${y}%`,
-        width: r * 2,
-        height: r * 2,
-        marginLeft: -r,
-        marginTop: -r,
-        borderRadius: shape.borderRadius,
-        background: `radial-gradient(circle at ${35 + shape.lightX}% ${35 + shape.lightY}%, #f5e6d3 0%, #e8b4b8 20%, #e8e8e8 50%, #2a2a2a 100%)`,
-        opacity: shape.opacity,
-        mixBlendMode: "screen",
-        filter: `blur(${shape.blur}px)`,
-        willChange: "transform, border-radius, opacity",
-      }}
-    />
-  );
-};
-
-const getShape = (t: number, seed: number) => {
-  const cycle = (t * 4 + seed * 0.13) % 1;
-  const morphT = cycle < 0.5 ? cycle * 2 : 2 - cycle * 2;
-  const s = Math.sin(morphT * TAU);
-  const s2 = Math.sin(morphT * TAU * 2 + seed);
-
-  const br = [
-    `${30 + s * 25}%`,
-    `${30 + s2 * 25}%`,
-    `${55 + s * 20}%`,
-    `${55 + s2 * 20}%`,
-  ].join(" ");
-
-  return {
-    scale: 0.75 + Math.abs(s) * 0.5,
-    borderRadius: br,
-    blur: 0,
-    opacity: 0.85 + Math.abs(s) * 0.15,
-    lightX: s * 10,
-    lightY: s2 * 10,
-  };
 };
 
 const FilmGrain: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
@@ -235,17 +149,6 @@ export const LiquidChrome: React.FC = () => {
         }}
       >
         <BaseChrome frame={frame} totalFrames={durationInFrames} />
-
-        {BLOBS.map((blob) => (
-          <MorphBlob
-            key={blob.id}
-            blob={blob}
-            frame={frame}
-            totalFrames={durationInFrames}
-            width={100}
-            height={100}
-          />
-        ))}
       </div>
 
       <SpecularHighlights frame={frame} totalFrames={durationInFrames} />
