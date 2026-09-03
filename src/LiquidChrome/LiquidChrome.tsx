@@ -13,20 +13,43 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const SPECULARS = Array.from({ length: 6 }, (_, i) => {
-  const r = mulberry32(2000 + i);
+const SPHERE_COUNT = 24;
+const SPHERE_SIZE = 520;
+
+interface Sphere {
+  id: number;
+  x: number;
+  y: number;
+  speed: number;
+  phase: number;
+}
+
+const SPHERES: Sphere[] = Array.from({ length: SPHERE_COUNT }, (_, i) => {
+  const r = mulberry32(1000 + i);
   const speeds = [1, 2, 3, 4, 5, 6];
   return {
     id: i,
-    angle: r() * TAU,
-    dist: 20 + r() * 25,
-    size: 3 + r() * 8,
+    x: r() * 100,
+    y: r() * 100,
     speed: speeds[i % speeds.length],
     phase: r() * TAU,
   };
 });
 
-const GRAIN = Array.from({ length: 200 }, (_, i) => {
+const SPECULARS = Array.from({ length: 8 }, (_, i) => {
+  const r = mulberry32(2000 + i);
+  const speeds = [1, 2, 3, 4, 5, 6, 7, 8];
+  return {
+    id: i,
+    angle: r() * TAU,
+    dist: 18 + r() * 22,
+    size: 2 + r() * 6,
+    speed: speeds[i % speeds.length],
+    phase: r() * TAU,
+  };
+});
+
+const GRAIN = Array.from({ length: 180 }, (_, i) => {
   const r = mulberry32(3000 + i);
   return { x: r() * 100, y: r() * 100 };
 });
@@ -35,24 +58,31 @@ const Background: React.FC = () => (
   <div style={{ position: "absolute", inset: 0, background: "#050505" }} />
 );
 
-const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
+const ChromeSphere: React.FC<{
+  sphere: Sphere;
+  frame: number;
+  totalFrames: number;
+}> = ({ sphere, frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const r1 = t * 360;
-  const r2 = -t * 180;
+  const rotation = sphere.phase + t * 360 * sphere.speed;
+  const pulse = 0.92 + 0.08 * Math.sin(t * TAU * 2 + sphere.phase);
+  const size = SPHERE_SIZE * pulse;
+
   return (
     <div
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: 1000,
-        height: 1000,
-        marginLeft: -500,
-        marginTop: -500,
+        left: `${sphere.x}%`,
+        top: `${sphere.y}%`,
+        width: size,
+        height: size,
+        marginLeft: -size / 2,
+        marginTop: -size / 2,
         borderRadius: "50%",
-        background: `conic-gradient(from ${r1}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 20%, #c0c0c0 40%, #1a1a1a 60%, #e8e8e8 80%, #f5e6d3 100%)`,
+        background: `conic-gradient(from ${rotation}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 18%, #c0c0c0 36%, #1a1a1a 54%, #e8e8e8 72%, #f5e6d3 90%, #e8e8e8 100%)`,
         mixBlendMode: "screen",
         opacity: 0.95,
+        willChange: "transform",
       }}
     />
   );
@@ -94,7 +124,7 @@ const SpecularHighlights: React.FC<{ frame: number; totalFrames: number }> = ({ 
 
 const FilmGrain: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   return (
-    <div style={{ position: "absolute", inset: 0, mixBlendMode: "overlay", opacity: 0.35, pointerEvents: "none" }}>
+    <div style={{ position: "absolute", inset: 0, mixBlendMode: "overlay", opacity: 0.3, pointerEvents: "none" }}>
       {GRAIN.map((g, i) => {
         const f = Math.sin((frame / totalFrames) * TAU * 5 + i * 1.3);
         const on = f > 0.2;
@@ -108,7 +138,7 @@ const FilmGrain: React.FC<{ frame: number; totalFrames: number }> = ({ frame, to
               width: 1,
               height: 1,
               backgroundColor: on ? "#ffffff" : "#000000",
-              opacity: 0.14,
+              opacity: 0.12,
             }}
           />
         );
@@ -123,7 +153,7 @@ const Vignette: React.FC = () => (
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(ellipse at center, transparent 25%, rgba(5,5,5,0.6) 72%, rgba(5,5,5,0.98) 100%)",
+        "radial-gradient(ellipse at center, transparent 20%, rgba(5,5,5,0.65) 70%, rgba(5,5,5,0.98) 100%)",
       pointerEvents: "none",
     }}
   />
@@ -134,7 +164,7 @@ export const LiquidChrome: React.FC = () => {
   const { durationInFrames } = useVideoConfig();
 
   const t = frame / durationInFrames;
-  const globalRotation = t * 360;
+  const globalRotation = t * 180;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#050505", overflow: "hidden" }}>
@@ -148,7 +178,14 @@ export const LiquidChrome: React.FC = () => {
           transformOrigin: "center center",
         }}
       >
-        <BaseChrome frame={frame} totalFrames={durationInFrames} />
+        {SPHERES.map((sphere) => (
+          <ChromeSphere
+            key={sphere.id}
+            sphere={sphere}
+            frame={frame}
+            totalFrames={durationInFrames}
+          />
+        ))}
       </div>
 
       <SpecularHighlights frame={frame} totalFrames={durationInFrames} />
