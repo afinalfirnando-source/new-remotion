@@ -1,0 +1,29 @@
+{
+  "name": "remotion-laser-show",
+  "version": "1.0.0",
+  "description": "4K multicolor laser light rays background - Remotion",
+  "scripts": {
+    "start": "remotion studio",
+    "dev": "remotion studio",
+    "build": "remotion render LaserShow out/laser-show.mp4 --bitrate=10000k",
+    "build:4k": "remotion render LaserShow out/laser-show-4k.mp4 --pixel-format=yuv420p --bitrate=10000k",
+    "build:1080": "remotion render LaserShow out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src --ext ts,tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.520",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.520"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.520",
+    "@types/react": "19.0.0",
+    "@types/web": "0.0.166",
+    "eslint": "9.27.0",
+    "typescript": "5.8.3"
+  },
+  "private": true
+}
