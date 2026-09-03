@@ -1,14 +1,24 @@
 name: Render
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Render target"
+        required: true
+        type: choice
+        default: "both"
+        options:
+          - both
+          - 1080p
+          - 4k
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
+    env:
+      TARGET: ${{ inputs.target || 'both' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -19,16 +29,22 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Ensure Chrome Headless Shell
+        run: npx remotion browser ensure
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Render 1080p preview
-        run: npx remotion render LaserShow-1080 out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k
+        if: ${{ env.TARGET == 'both' || env.TARGET == '1080p' }}
+        run: npx remotion render LaserShow-1080 out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k --concurrency=4
 
       - name: Render 4K final
-        run: npx remotion render LaserShow out/laser-show-4k.mp4 --pixel-format=yuv420p --bitrate=10000k
+        if: ${{ env.TARGET == 'both' || env.TARGET == '4k' }}
+        run: npx remotion render LaserShow out/laser-show-4k.mp4 --pixel-format=yuv420p --bitrate=10000k --concurrency=4
 
       - name: Upload 1080p
+        if: ${{ env.TARGET == 'both' || env.TARGET == '1080p' }}
         uses: actions/upload-artifact@v4
         with:
           name: laser-show-1080
@@ -36,6 +52,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Upload 4K
+        if: ${{ env.TARGET == 'both' || env.TARGET == '4k' }}
         uses: actions/upload-artifact@v4
         with:
           name: laser-show-4k
