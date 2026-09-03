@@ -9,29 +9,28 @@ jobs:
   render:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ./remotion-video
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: remotion-video/package-lock.json
 
       - name: Install dependencies
-        working-directory: remotion-video
         run: npm ci --no-audit --no-fund
 
       - name: Typecheck
-        working-directory: remotion-video
         run: npm run typecheck
 
       - name: Render 1080p preview
-        working-directory: remotion-video
         run: npx remotion render LaserShow-1080 out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k
 
       - name: Render 4K final
-        working-directory: remotion-video
         run: npx remotion render LaserShow out/laser-show-4k.mp4 --pixel-format=yuv420p --bitrate=10000k
 
       - name: Upload 1080p
