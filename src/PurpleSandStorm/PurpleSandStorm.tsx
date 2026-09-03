@@ -43,23 +43,6 @@ const mulberry32 = (seed: number) => {
 };
 
 const TAU = Math.PI * 2;
-const hash = (n: number) => {
-  const s = Math.sin(n) * 43758.5453123;
-  return s - Math.floor(s);
-};
-const noise2 = (x: number, y: number) => {
-  const xi = Math.floor(x);
-  const yi = Math.floor(y);
-  const xf = x - xi;
-  const yf = y - yi;
-  const u = xf * xf * (3 - 2 * xf);
-  const v = yf * yf * (3 - 2 * yf);
-  const a = hash(xi + yi * 57.0);
-  const b = hash(xi + 1 + yi * 57.0);
-  const c = hash(xi + (yi + 1) * 57.0);
-  const d = hash(xi + 1 + (yi + 1) * 57.0);
-  return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v;
-};
 
 const generateParticles = (
   count: number,
@@ -80,6 +63,8 @@ const generateParticles = (
   ];
   return Array.from({ length: count }, (_, i) => {
     const z = zMin + rand() * (zMax - zMin);
+    const speedBucket = Math.floor(rand() * 4);
+    const twinkleSpeed = [1, 2, 3, 4][speedBucket];
     return {
       id: i,
       x: rand() * 100,
@@ -87,7 +72,7 @@ const generateParticles = (
       z,
       baseSize: sizeMin + rand() * (sizeMax - sizeMin),
       twinklePhase: rand(),
-      twinkleSpeed: 0.3 + rand() * 1.5,
+      twinkleSpeed,
       hue: huePool[Math.floor(rand() * huePool.length)],
       intensity: 0.4 + rand() * 0.6,
       windOffset: rand(),
@@ -108,7 +93,7 @@ const SPARKS = Array.from({ length: SPARK_COUNT }, (_, i) => {
     y: r() * 100,
     baseSize: 0.8 + r() * 1.8,
     phase: r(),
-    speed: 1.5 + r() * 2,
+    speed: [2, 3, 4, 5][Math.floor(r() * 4)],
     isGold: r() > 0.4,
   };
 });
@@ -121,12 +106,12 @@ const Camera: React.FC<{
   children: React.ReactNode;
 }> = ({ frame, totalFrames, width, height, children }) => {
   const t = frame / totalFrames;
-  const panX = Math.sin(t * TAU * 0.3) * width * 0.04;
-  const panY = Math.cos(t * TAU * 0.2) * height * 0.025;
-  const tilt = Math.sin(t * TAU * 0.15) * 0.4;
-  const breath = 1 + Math.sin(t * TAU * 0.25) * 0.005;
-  const shakeX = (noise2(t * 60, 99) - 0.5) * 1.4;
-  const shakeY = (noise2(t * 60, 199) - 0.5) * 1.4;
+  const panX = Math.sin(t * TAU * 1) * width * 0.04;
+  const panY = Math.cos(t * TAU * 1) * height * 0.025;
+  const tilt = Math.sin(t * TAU * 1) * 0.4;
+  const breath = 1 + Math.sin(t * TAU * 1) * 0.005;
+  const shakeX = Math.sin(t * TAU * 7 + 99) * 1.4;
+  const shakeY = Math.sin(t * TAU * 7 + 199) * 1.4;
 
   return (
     <div
@@ -145,7 +130,7 @@ const Camera: React.FC<{
 
 const GodRays: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const breath = 0.95 + 0.1 * Math.sin(t * TAU * 0.5);
+  const breath = 0.95 + 0.1 * Math.sin(t * TAU * 1);
   return (
     <>
       <div
@@ -173,7 +158,7 @@ const GodRays: React.FC<{ frame: number; totalFrames: number }> = ({ frame, tota
           height: "100%",
           background:
             "linear-gradient(180deg, rgba(255, 184, 77, 0.28) 0%, transparent 60%)",
-          transform: `rotate(-8deg) scale(${breath * 0.95})`,
+          transform: `rotate(-8deg) scale(${breath})`,
           transformOrigin: "top center",
           mixBlendMode: "screen",
           filter: "blur(80px)",
@@ -239,11 +224,23 @@ const ParticleLayer: React.FC<{
       }}
     >
       {particles.map((p) => {
-        const wx = p.x * width + (noise2(t * 2 + p.windOffset, p.y * 0.01 + p.windOffset) - 0.5) * width * 0.8;
-        const wy = p.y * height + (noise2(t * 2 + p.windOffset + 11, p.x * 0.01 + p.windOffset) - 0.5) * height * 0.6;
-        const driftX = Math.sin(t * TAU + p.windOffset * TAU) * width * 0.05;
-        const driftY = Math.cos(t * TAU * 0.7 + p.windOffset * TAU) * height * 0.03;
-        const twinkle = 0.3 + 0.7 * (Math.sin(t * TAU * p.twinkleSpeed + p.twinklePhase * TAU) * 0.5 + 0.5);
+        const windN1 = 2 + Math.floor(p.windOffset * 3);
+        const windN2 = 3 + Math.floor(p.windOffset * 4);
+        const wx =
+          p.x * width +
+          Math.sin(t * TAU * windN1 + p.windOffset * TAU) * width * 0.4 +
+          Math.cos(t * TAU * 2 + p.windOffset * 11) * width * 0.2;
+        const wy =
+          p.y * height +
+          Math.cos(t * TAU * windN2 + p.windOffset * TAU) * height * 0.3 +
+          Math.sin(t * TAU * 2 + p.windOffset * 13) * height * 0.15;
+        const driftX = Math.sin(t * TAU * 1 + p.windOffset * TAU) * width * 0.05;
+        const driftY = Math.cos(t * TAU * 1 + p.windOffset * TAU) * height * 0.03;
+        const twinkle =
+          0.3 +
+          0.7 *
+            (Math.sin(t * TAU * p.twinkleSpeed + p.twinklePhase * TAU) * 0.5 +
+              0.5);
         const size = p.baseSize * p.z * windScale * 2.5;
         const px = ((wx + driftX) % (width + 200)) - 100;
         const py = ((wy + driftY) % (height + 200)) - 100;
@@ -285,8 +282,10 @@ const Sparks: React.FC<{ frame: number; totalFrames: number; width: number; heig
       {SPARKS.map((sp) => {
         const phase = (t * sp.speed + sp.phase) % 1;
         const twinkle = Math.pow(Math.sin(phase * Math.PI), 8);
-        const cx = (sp.x / 100) * width + (noise2(t * 3, sp.y * 0.01) - 0.5) * 80;
-        const cy = (sp.y / 100) * height + (noise2(t * 3 + 7, sp.x * 0.01) - 0.5) * 60;
+        const cx =
+          (sp.x / 100) * width + Math.sin(t * TAU * 3 + sp.y * 0.01) * 80;
+        const cy =
+          (sp.y / 100) * height + Math.cos(t * TAU * 3 + sp.x * 0.01) * 60;
         const color = sp.isGold ? COLORS.brightGold : COLORS.paleGold;
         return (
           <div
@@ -311,7 +310,8 @@ const Sparks: React.FC<{ frame: number; totalFrames: number; width: number; heig
 
 const Haze: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const breath = 0.9 + 0.15 * Math.sin(t * TAU * 0.4);
+  const breath = 0.9 + 0.15 * Math.sin(t * TAU * 1);
+  const driftX = Math.sin(t * TAU * 1) * 100;
   return (
     <div
       style={{
@@ -322,7 +322,7 @@ const Haze: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFr
         height: "50%",
         background:
           "radial-gradient(ellipse at center, rgba(255, 184, 77, 0.18) 0%, rgba(166, 77, 255, 0.12) 40%, transparent 70%)",
-        transform: `scale(${breath}) translateX(${(noise2(t * 0.5, 3) - 0.5) * 100}px)`,
+        transform: `scale(${breath}) translateX(${driftX}px)`,
         mixBlendMode: "screen",
         filter: "blur(60px)",
         pointerEvents: "none",
@@ -381,7 +381,7 @@ const ChromaticAberration: React.FC<{ frame: number; totalFrames: number }> = ({
   totalFrames,
 }) => {
   const t = frame / totalFrames;
-  const shift = 0.5 + 0.5 * Math.sin(t * TAU);
+  const shift = 0.5 + 0.5 * Math.sin(t * TAU * 1);
   return (
     <>
       <div
