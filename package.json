@@ -1,13 +1,15 @@
 {
   "name": "remotion-laser-show",
   "version": "1.0.0",
-  "description": "4K multicolor laser light rays background - Remotion",
+  "description": "4K multicolor laser light rays & purple sand storm backgrounds - Remotion",
   "scripts": {
     "start": "remotion studio",
     "dev": "remotion studio",
     "build": "remotion render LaserShow out/laser-show.mp4 --bitrate=10000k",
     "build:4k": "remotion render LaserShow out/laser-show-4k.mp4 --pixel-format=yuv420p --bitrate=10000k",
     "build:1080": "remotion render LaserShow out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k",
+    "build:sand:4k": "remotion render PurpleSandStorm out/sand-storm-4k.mp4 --pixel-format=yuv420p --bitrate=20000k --concurrency=2",
+    "build:sand:1080": "remotion render PurpleSandStorm-1080 out/sand-storm-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
     "upgrade": "remotion upgrade",
     "lint": "eslint src --ext ts,tsx",
     "typecheck": "tsc --noEmit"

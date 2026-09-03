@@ -11,6 +11,8 @@ on:
         options:
           - LaserShow
           - LaserShow-1080
+          - PurpleSandStorm
+          - PurpleSandStorm-1080
       bitrate:
         description: "Bitrate (kbps)"
         required: true
