@@ -1,7 +1,7 @@
 {
   "name": "remotion-laser-show",
   "version": "1.0.0",
-  "description": "4K multicolor laser light rays & purple sand storm backgrounds - Remotion",
+  "description": "4K multicolor laser light rays, purple sand storm & liquid chrome backgrounds - Remotion",
   "scripts": {
     "start": "remotion studio",
     "dev": "remotion studio",
@@ -10,6 +10,8 @@
     "build:1080": "remotion render LaserShow out/laser-show-1080.mp4 --pixel-format=yuv420p --bitrate=10000k",
     "build:sand:4k": "remotion render PurpleSandStorm out/sand-storm-4k.mp4 --pixel-format=yuv420p --bitrate=20000k --concurrency=2",
     "build:sand:1080": "remotion render PurpleSandStorm-1080 out/sand-storm-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
+    "build:chrome:4k": "remotion render LiquidChrome out/liquid-chrome-4k.mp4 --pixel-format=yuv420p --bitrate=25000k --concurrency=2",
+    "build:chrome:1080": "remotion render LiquidChrome-1080 out/liquid-chrome-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
     "upgrade": "remotion upgrade",
     "lint": "eslint src --ext ts,tsx",
     "typecheck": "tsc --noEmit"

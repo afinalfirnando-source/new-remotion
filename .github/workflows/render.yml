@@ -13,6 +13,8 @@ on:
           - LaserShow-1080
           - PurpleSandStorm
           - PurpleSandStorm-1080
+          - LiquidChrome
+          - LiquidChrome-1080
       bitrate:
         description: "Bitrate (kbps)"
         required: true
