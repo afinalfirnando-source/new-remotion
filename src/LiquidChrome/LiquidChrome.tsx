@@ -1,12 +1,8 @@
-import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
+import React, { useMemo } from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
 const TAU = Math.PI * 2;
 const DURATION = 960;
-
-const BLOB_COUNT = 4;
-const SPECULAR_COUNT = 5;
-const GRAIN_COUNT = 240;
 
 const mulberry32 = (seed: number) => {
   return () => {
@@ -19,80 +15,104 @@ const mulberry32 = (seed: number) => {
 
 interface Blob {
   id: number;
-  baseX: number;
-  baseY: number;
-  radius: number;
+  cx: number;
+  cy: number;
+  r: number;
   speed: number;
   phase: number;
-  hue: string;
+  orbitSpeed: number;
+  orbitRadius: number;
 }
 
-const BLOBS: Blob[] = Array.from({ length: BLOB_COUNT }, (_, i) => {
+const BLOBS: Blob[] = Array.from({ length: 5 }, (_, i) => {
   const r = mulberry32(1000 + i);
-  const hues = ["#e8e8e8", "#f5e6d3", "#e8b4b8", "#d4e5f7"];
+  const speeds = [1, 2, 3, 4, 5];
   return {
     id: i,
-    baseX: 0.2 + r() * 0.6,
-    baseY: 0.2 + r() * 0.6,
-    radius: 120 + r() * 160,
-    speed: 1 + r() * 2,
-    phase: r(),
-    hue: hues[i % hues.length],
+    cx: 50,
+    cy: 50,
+    r: 140 + r() * 120,
+    speed: speeds[i % speeds.length],
+    phase: r() * TAU,
+    orbitSpeed: speeds[(i + 2) % speeds.length],
+    orbitRadius: 8 + r() * 15,
   };
 });
 
-const SPECULARS = Array.from({ length: SPECULAR_COUNT }, (_, i) => {
+const SPECULARS = Array.from({ length: 6 }, (_, i) => {
   const r = mulberry32(2000 + i);
+  const speeds = [1, 2, 3, 4, 5, 6];
   return {
     id: i,
     angle: r() * TAU,
-    distance: 0.25 + r() * 0.35,
-    size: 4 + r() * 10,
-    speed: 1 + r() * 1.5,
-    phase: r(),
+    dist: 20 + r() * 25,
+    size: 3 + r() * 8,
+    speed: speeds[i % speeds.length],
+    phase: r() * TAU,
   };
 });
 
-const GRAIN = Array.from({ length: GRAIN_COUNT }, (_, i) => {
+const GRAIN = Array.from({ length: 280 }, (_, i) => {
   const r = mulberry32(3000 + i);
   return { x: r() * 100, y: r() * 100 };
 });
 
 const Background: React.FC = () => (
   <>
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "#050505",
-      }}
-    />
+    <div style={{ position: "absolute", inset: 0, background: "#050505" }} />
     <div
       style={{
         position: "absolute",
         inset: 0,
         background:
-          "radial-gradient(ellipse at 50% 30%, rgba(40,40,50,0.4) 0%, transparent 60%)",
+          "linear-gradient(135deg, rgba(40,40,50,0.25) 0%, transparent 50%, rgba(5,5,5,0.9) 100%)",
       }}
     />
+    <GridPattern />
   </>
 );
 
-const EnvironmentReflection: React.FC<{ frame: number; totalFrames: number }> = ({
-  frame,
-  totalFrames,
-}) => {
+const GridPattern: React.FC = () => {
+  const cells = useMemo(
+    () =>
+      Array.from({ length: 64 }, (_, i) => {
+        const r = mulberry32(4000 + i);
+        return { x: (i % 8) * 12.5, y: Math.floor(i / 8) * 12.5, opacity: 0.03 + r() * 0.04 };
+      }),
+    []
+  );
+  return (
+    <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      {cells.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${c.x}%`,
+            top: `${c.y}%`,
+            width: "1px",
+            height: "1px",
+            background: "#ffffff",
+            opacity: c.opacity,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const EnvironmentReflection: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const shift = (t * 100) % 100;
+  const shift = (t * 120) % 120;
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
         background:
-          "linear-gradient(180deg, rgba(245,230,211,0.06) 0%, rgba(232,180,184,0.04) 40%, rgba(5,5,5,0.9) 100%)",
+          "linear-gradient(180deg, rgba(245,230,211,0.08) 0%, rgba(232,180,184,0.05) 35%, rgba(212,229,247,0.04) 65%, rgba(5,5,5,0.95) 100%)",
         mixBlendMode: "screen",
-        opacity: 0.6,
+        opacity: 0.7,
       }}
     />
   );
@@ -100,45 +120,23 @@ const EnvironmentReflection: React.FC<{ frame: number; totalFrames: number }> = 
 
 const BaseChrome: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const rotation = t * 360;
+  const r1 = t * 360;
+  const r2 = -t * 180;
   return (
     <div
       style={{
         position: "absolute",
         top: "50%",
         left: "50%",
-        width: 800,
-        height: 800,
-        marginLeft: -400,
-        marginTop: -400,
+        width: 1000,
+        height: 1000,
+        marginLeft: -500,
+        marginTop: -500,
         borderRadius: "50%",
-        background: `conic-gradient(from ${rotation}deg, #e8e8e8 0%, #2a2a2a 25%, #c0c0c0 50%, #1a1a1a 75%, #e8e8e8 100%)`,
-        filter: "blur(1.5px) contrast(1.3) saturate(0.2)",
+        background: `conic-gradient(from ${r1}deg at 50% 50%, #e8e8e8 0%, #2a2a2a 20%, #c0c0c0 40%, #1a1a1a 60%, #e8e8e8 80%, #f5e6d3 100%)`,
+        filter: "blur(2px) contrast(1.4) saturate(0.3)",
         mixBlendMode: "screen",
-        opacity: 0.95,
-      }}
-    />
-  );
-};
-
-const DistortionMap: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
-  const t = frame / totalFrames;
-  const n1 = Math.sin(t * TAU * 3) * 0.5 + 0.5;
-  const n2 = Math.cos(t * TAU * 2) * 0.5 + 0.5;
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        width: 900,
-        height: 900,
-        marginLeft: -450,
-        marginTop: -450,
-        borderRadius: "50%",
-        background: `radial-gradient(circle at ${40 + n1 * 20}% ${40 + n2 * 20}%, rgba(245,230,211,0.15) 0%, transparent 60%)`,
-        mixBlendMode: "overlay",
-        filter: "blur(20px)",
+        opacity: 0.9,
       }}
     />
   );
@@ -146,22 +144,22 @@ const DistortionMap: React.FC<{ frame: number; totalFrames: number }> = ({ frame
 
 const KeyLight: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const x = 25 + Math.sin(t * TAU * 0.5) * 10;
-  const y = 25 + Math.cos(t * TAU * 0.3) * 8;
+  const x = 30 + Math.sin(t * TAU * 1) * 12;
+  const y = 25 + Math.cos(t * TAU * 1) * 10;
   return (
     <div
       style={{
         position: "absolute",
         left: `${x}%`,
         top: `${y}%`,
-        width: 600,
-        height: 600,
-        marginLeft: -300,
-        marginTop: -300,
+        width: 700,
+        height: 700,
+        marginLeft: -350,
+        marginTop: -350,
         borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(245,230,211,0.9) 0%, rgba(245,230,211,0.4) 25%, transparent 65%)",
+        background: "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(245,230,211,0.5) 25%, transparent 65%)",
         mixBlendMode: "screen",
-        filter: "blur(40px)",
+        filter: "blur(35px)",
       }}
     />
   );
@@ -171,16 +169,16 @@ const FillLight: React.FC = () => (
   <div
     style={{
       position: "absolute",
-      right: "5%",
-      top: "40%",
-      width: 500,
-      height: 500,
-      marginRight: -250,
-      marginTop: -250,
+      right: "8%",
+      top: "45%",
+      width: 550,
+      height: 550,
+      marginRight: -275,
+      marginTop: -275,
       borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(232,180,184,0.55) 0%, rgba(232,180,184,0.15) 35%, transparent 70%)",
+      background: "radial-gradient(circle, rgba(232,180,184,0.6) 0%, rgba(232,180,184,0.15) 35%, transparent 70%)",
       mixBlendMode: "screen",
-      filter: "blur(60px)",
+      filter: "blur(55px)",
     }}
   />
 );
@@ -189,15 +187,15 @@ const RimLight: React.FC = () => (
   <div
     style={{
       position: "absolute",
-      top: "20%",
+      top: "15%",
       left: "50%",
-      width: 300,
-      height: 800,
-      marginLeft: -150,
-      marginTop: -400,
-      background: "linear-gradient(180deg, transparent 30%, rgba(212,229,247,0.3) 50%, transparent 70%)",
+      width: 350,
+      height: 900,
+      marginLeft: -175,
+      marginTop: -450,
+      background: "linear-gradient(180deg, transparent 25%, rgba(212,229,247,0.35) 50%, transparent 75%)",
       mixBlendMode: "screen",
-      filter: "blur(30px)",
+      filter: "blur(35px)",
     }}
   />
 );
@@ -207,11 +205,11 @@ const SpecularHighlights: React.FC<{ frame: number; totalFrames: number }> = ({ 
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {SPECULARS.map((sp) => {
-        const angle = sp.angle + t * TAU * sp.speed * 0.3;
-        const dist = sp.distance * 220;
+        const angle = sp.angle + t * TAU * sp.speed;
+        const dist = sp.dist * 0.25;
         const x = 50 + Math.cos(angle) * dist;
         const y = 50 + Math.sin(angle) * dist;
-        const pulse = 0.6 + 0.4 * Math.sin(t * TAU * sp.speed + sp.phase * TAU);
+        const pulse = 0.5 + 0.5 * Math.sin(t * TAU * sp.speed + sp.phase);
         return (
           <div
             key={sp.id}
@@ -226,7 +224,7 @@ const SpecularHighlights: React.FC<{ frame: number; totalFrames: number }> = ({ 
               borderRadius: "50%",
               backgroundColor: "#ffffff",
               opacity: pulse,
-              boxShadow: `0 0 ${sp.size * 3}px #ffffff, 0 0 ${sp.size * 8}px #f5e6d3`,
+              boxShadow: `0 0 ${sp.size * 4}px #ffffff, 0 0 ${sp.size * 10}px #f5e6d3, 0 0 ${sp.size * 20}px rgba(245,230,211,0.5)`,
               mixBlendMode: "screen",
             }}
           />
@@ -244,68 +242,75 @@ const MorphBlob: React.FC<{
   height: number;
 }> = ({ blob, frame, totalFrames, width, height }) => {
   const t = frame / totalFrames;
+  const angle = blob.phase + t * TAU * blob.orbitSpeed;
+  const orbitX = Math.cos(angle) * blob.orbitRadius;
+  const orbitY = Math.sin(angle) * blob.orbitRadius * 0.7;
+  const x = blob.cx + orbitX;
+  const y = blob.cy + orbitY;
+
   const shape = getShape(t, blob.id);
-  const x = blob.baseX * width + shape.dx;
-  const y = blob.baseY * height + shape.dy;
-  const r = blob.radius * shape.scale;
-  const pulse = 0.85 + 0.15 * Math.sin(t * TAU * blob.speed + blob.phase * TAU);
-  const morphBorder = shape.borderRadius;
+  const r = blob.r * shape.scale;
 
   return (
     <div
       style={{
         position: "absolute",
-        left: x - r,
-        top: y - r,
+        left: `${x}%`,
+        top: `${y}%`,
         width: r * 2,
         height: r * 2,
-        borderRadius: morphBorder,
-        background: blob.hue,
-        opacity: pulse * 0.85,
+        marginLeft: -r,
+        marginTop: -r,
+        borderRadius: shape.borderRadius,
+        background: `radial-gradient(circle at ${35 + shape.lightX}% ${35 + shape.lightY}%, #f5e6d3 0%, #e8b4b8 20%, #e8e8e8 50%, #2a2a2a 100%)`,
+        opacity: shape.opacity,
         mixBlendMode: "screen",
-        filter: `blur(${shape.blur}px) contrast(${shape.contrast}) saturate(${shape.saturate})`,
-        willChange: "transform, border-radius",
+        filter: `blur(${shape.blur}px) contrast(${shape.contrast}) saturate(${shape.saturate}) brightness(${shape.brightness})`,
+        willChange: "transform, border-radius, opacity",
       }}
     />
   );
 };
 
 const getShape = (t: number, seed: number) => {
-  const cycle = (t * 4 + seed * 0.1) % 1;
+  const cycle = (t * 4 + seed * 0.13) % 1;
   const morphT = cycle < 0.5 ? cycle * 2 : 2 - cycle * 2;
-  const base = Math.sin(morphT * TAU) * 0.5 + 0.5;
+  const s = Math.sin(morphT * TAU);
+  const s2 = Math.sin(morphT * TAU * 2 + seed);
 
-  const br = `${30 + base * 40}% ${30 + base * 40}% ${50 + base * 30}% ${50 + base * 30}% / ${40 + base * 30}% ${40 + base * 30}% ${60 + base * 20}% ${60 + base * 20}%`;
+  const br = [
+    `${30 + s * 25}%`,
+    `${30 + s2 * 25}%`,
+    `${55 + s * 20}%`,
+    `${55 + s2 * 20}%`,
+  ].join(" ");
+
   return {
-    dx: Math.sin(morphT * TAU * 2 + seed) * 40,
-    dy: Math.cos(morphT * TAU * 2 + seed) * 30,
-    scale: 0.8 + base * 0.4,
+    scale: 0.75 + Math.abs(s) * 0.5,
     borderRadius: br,
-    blur: 25 + base * 15,
-    contrast: 18 + base * 6,
-    saturate: 0.8 + base * 0.4,
+    blur: 22 + Math.abs(s) * 18,
+    contrast: 16 + Math.abs(s) * 8,
+    saturate: 0.7 + Math.abs(s) * 0.6,
+    brightness: 0.9 + Math.abs(s2) * 0.3,
+    opacity: 0.75 + Math.abs(s) * 0.2,
+    lightX: s * 15,
+    lightY: s2 * 15,
   };
 };
 
-const LensFlare: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
+const ChromaticAberration: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   const t = frame / totalFrames;
-  const intensity = Math.max(0, Math.sin(t * TAU) * 0.5 + 0.5);
+  const shift = 0.3 + 0.3 * Math.sin(t * TAU * 1);
   return (
     <div
       style={{
         position: "absolute",
-        left: "35%",
-        top: "30%",
-        width: 400,
-        height: 400,
-        marginLeft: -200,
-        marginTop: -200,
-        borderRadius: "50%",
+        inset: 0,
         background:
-          "radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(245,230,211,0.3) 30%, rgba(232,180,184,0.1) 55%, transparent 75%)",
-        opacity: intensity * 0.6,
+          "linear-gradient(90deg, rgba(232,180,184,0.05) 0%, transparent 50%, rgba(212,229,247,0.05) 100%)",
         mixBlendMode: "screen",
-        filter: "blur(15px)",
+        opacity: shift,
+        pointerEvents: "none",
       }}
     />
   );
@@ -313,10 +318,10 @@ const LensFlare: React.FC<{ frame: number; totalFrames: number }> = ({ frame, to
 
 const FilmGrain: React.FC<{ frame: number; totalFrames: number }> = ({ frame, totalFrames }) => {
   return (
-    <div style={{ position: "absolute", inset: 0, mixBlendMode: "overlay", opacity: 0.35, pointerEvents: "none" }}>
+    <div style={{ position: "absolute", inset: 0, mixBlendMode: "overlay", opacity: 0.4, pointerEvents: "none" }}>
       {GRAIN.map((g, i) => {
-        const f = Math.sin((frame / totalFrames) * TAU * 6 + i * 1.7);
-        const on = f > 0.3;
+        const f = Math.sin((frame / totalFrames) * TAU * 5 + i * 1.3);
+        const on = f > 0.2;
         return (
           <div
             key={i}
@@ -327,7 +332,7 @@ const FilmGrain: React.FC<{ frame: number; totalFrames: number }> = ({ frame, to
               width: 1,
               height: 1,
               backgroundColor: on ? "#ffffff" : "#000000",
-              opacity: 0.15,
+              opacity: 0.14,
             }}
           />
         );
@@ -342,7 +347,7 @@ const Vignette: React.FC = () => (
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(ellipse at center, transparent 30%, rgba(5,5,5,0.7) 75%, rgba(5,5,5,0.98) 100%)",
+        "radial-gradient(ellipse at center, transparent 20%, rgba(5,5,5,0.65) 72%, rgba(5,5,5,0.98) 100%)",
       pointerEvents: "none",
     }}
   />
@@ -350,10 +355,11 @@ const Vignette: React.FC = () => (
 
 export const LiquidChrome: React.FC = () => {
   const frame = useCurrentFrame();
-  const { durationInFrames, width, height } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
 
   const t = frame / durationInFrames;
-  const globalRotation = t * 5;
+  const globalRotation = t * 360;
+  const globalScale = 1 + Math.sin(t * TAU * 1) * 0.03;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#050505", overflow: "hidden" }}>
@@ -363,12 +369,11 @@ export const LiquidChrome: React.FC = () => {
         style={{
           position: "absolute",
           inset: 0,
-          transform: `rotate(${globalRotation}deg)`,
+          transform: `rotate(${globalRotation}deg) scale(${globalScale})`,
           transformOrigin: "center center",
         }}
       >
         <BaseChrome frame={frame} totalFrames={durationInFrames} />
-        <DistortionMap frame={frame} totalFrames={durationInFrames} />
         <KeyLight frame={frame} totalFrames={durationInFrames} />
         <FillLight />
         <RimLight />
@@ -380,14 +385,14 @@ export const LiquidChrome: React.FC = () => {
             blob={blob}
             frame={frame}
             totalFrames={durationInFrames}
-            width={width}
-            height={height}
+            width={100}
+            height={100}
           />
         ))}
       </div>
 
       <EnvironmentReflection frame={frame} totalFrames={durationInFrames} />
-      <LensFlare frame={frame} totalFrames={durationInFrames} />
+      <ChromaticAberration frame={frame} totalFrames={durationInFrames} />
       <Vignette />
       <FilmGrain frame={frame} totalFrames={durationInFrames} />
     </AbsoluteFill>
