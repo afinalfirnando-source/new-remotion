@@ -13,9 +13,11 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const SPHERE_COUNT = 18;
-const SPHERE_SIZE_MIN = 420;
-const SPHERE_SIZE_MAX = 860;
+const IS_CI = typeof process !== "undefined" && process.env.CI === "true";
+
+const SPHERE_COUNT = IS_CI ? 8 : 18;
+const SPHERE_SIZE_MIN = IS_CI ? 340 : 420;
+const SPHERE_SIZE_MAX = IS_CI ? 720 : 860;
 
 interface Sphere {
   id: number;

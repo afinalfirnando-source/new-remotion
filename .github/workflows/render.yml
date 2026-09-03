@@ -15,38 +15,35 @@ on:
           - PurpleSandStorm-1080
           - LiquidChrome
           - LiquidChrome-1080
-      bitrate:
-        description: "Bitrate (kbps)"
+      quality:
+        description: "Quality preset"
         required: true
         type: choice
-        default: "10000"
+        default: "balanced"
         options:
-          - "2000"
-          - "5000"
-          - "8000"
-          - "10000"
-          - "20000"
-          - "30000"
-          - "50000"
+          - draft
+          - balanced
+          - final
       concurrency:
-        description: "Render concurrency (1-8)"
+        description: "Render concurrency (1-4)"
         required: true
         type: choice
-        default: "4"
+        default: "2"
         options:
           - "1"
           - "2"
+          - "3"
           - "4"
-          - "8"
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
     env:
       COMPOSITION: ${{ inputs.composition || 'LaserShow' }}
-      BITRATE: ${{ inputs.bitrate || '10000' }}
-      CONCURRENCY: ${{ inputs.concurrency || '4' }}
+      QUALITY: ${{ inputs.quality || 'balanced' }}
+      CONCURRENCY: ${{ inputs.concurrency || '2' }}
+      CI: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -57,9 +54,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Ensure Chrome Headless Shell
-        run: npx remotion browser ensure
-
       - name: Typecheck
         run: npm run typecheck
 
@@ -68,12 +62,13 @@ jobs:
           mkdir -p out
           npx remotion render "$COMPOSITION" "out/${COMPOSITION}.mp4" \
             --pixel-format=yuv420p \
-            --bitrate="${BITRATE}k" \
-            --concurrency=${CONCURRENCY}
+            --concurrency=${CONCURRENCY} \
+            --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage" \
+            --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage"
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.COMPOSITION }}-${{ env.BITRATE }}k
+          name: ${{ env.COMPOSITION }}-${{ env.QUALITY }}
           path: out/${{ env.COMPOSITION }}.mp4
           if-no-files-found: warn

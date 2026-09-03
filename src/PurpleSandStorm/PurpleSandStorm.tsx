@@ -1,11 +1,13 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
-const PARTICLE_BACK = 1800;
-const PARTICLE_MID = 2200;
-const PARTICLE_FRONT = 1000;
-const DUST_COUNT = 500;
-const SPARK_COUNT = 300;
+const IS_CI = typeof process !== "undefined" && process.env.CI === "true";
+
+const PARTICLE_BACK = IS_CI ? 600 : 1800;
+const PARTICLE_MID = IS_CI ? 700 : 2200;
+const PARTICLE_FRONT = IS_CI ? 300 : 1000;
+const DUST_COUNT = IS_CI ? 150 : 500;
+const SPARK_COUNT = IS_CI ? 100 : 300;
 
 const COLORS = {
   deepVoid: "#0a0014",
