@@ -17,6 +17,8 @@ on:
           - LiquidChrome-1080
           - GoldGrid
           - GoldGrid-1080
+          - GoldGridTight
+          - GoldGridTight-1080
       quality:
         description: "Quality preset"
         required: true

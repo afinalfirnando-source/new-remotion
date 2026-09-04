@@ -14,6 +14,8 @@
     "build:chrome:1080": "remotion render LiquidChrome-1080 out/liquid-chrome-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
     "build:gold:4k": "remotion render GoldGrid out/gold-grid-4k.mp4 --pixel-format=yuv420p --bitrate=25000k --concurrency=2",
     "build:gold:1080": "remotion render GoldGrid-1080 out/gold-grid-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
+    "build:gold:tight:4k": "remotion render GoldGridTight out/gold-grid-tight-4k.mp4 --pixel-format=yuv420p --bitrate=25000k --concurrency=2",
+    "build:gold:tight:1080": "remotion render GoldGridTight-1080 out/gold-grid-tight-1080.mp4 --pixel-format=yuv420p --bitrate=15000k --concurrency=4",
     "upgrade": "remotion upgrade",
     "lint": "eslint src --ext ts,tsx",
     "typecheck": "tsc --noEmit"

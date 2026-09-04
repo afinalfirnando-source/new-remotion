@@ -4,6 +4,7 @@ import { LaserShow } from "./LaserShow/LaserShow";
 import { PurpleSandStorm } from "./PurpleSandStorm/PurpleSandStorm";
 import { LiquidChrome } from "./LiquidChrome/LiquidChrome";
 import { GoldGrid } from "./GoldGrid/GoldGrid";
+import { GoldGridTight } from "./GoldGridTight/GoldGridTight";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -67,6 +68,22 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="GoldGrid-1080"
         component={GoldGrid}
+        durationInFrames={960}
+        fps={60}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="GoldGridTight"
+        component={GoldGridTight}
+        durationInFrames={960}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="GoldGridTight-1080"
+        component={GoldGridTight}
         durationInFrames={960}
         fps={60}
         width={1920}
