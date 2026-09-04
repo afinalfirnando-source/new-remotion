@@ -2,7 +2,6 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
 const TAU = Math.PI * 2;
-const DURATION = 960;
 
 const mulberry32 = (seed: number) => {
   return () => {
@@ -13,9 +12,8 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const GRID_COLS = 7;
-const GRID_ROWS = 5;
-const GRID_OVERSCAN = 1.35;
+const GRID_COLS = 10;
+const GRID_ROWS = 8;
 
 interface Sphere {
   id: number;
@@ -23,7 +21,6 @@ interface Sphere {
   row: number;
   speed: number;
   phase: number;
-  orbitRadius: number;
 }
 
 const SPHERES: Sphere[] = (() => {
@@ -38,7 +35,6 @@ const SPHERES: Sphere[] = (() => {
         row,
         speed: speeds[(col + row) % speeds.length],
         phase: r() * TAU,
-        orbitRadius: 2 + r() * 4,
       });
     }
   }
@@ -67,28 +63,18 @@ const Background: React.FC = () => (
   <div style={{ position: "absolute", inset: 0, background: "#000000" }} />
 );
 
-const BaseGold: React.FC = () => (
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      background:
-        "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.85) 0%, rgba(218,165,32,0.65) 30%, rgba(184,134,11,0.45) 55%, rgba(139,105,20,0.3) 75%, rgba(0,0,0,0.2) 100%)",
-      mixBlendMode: "screen",
-    }}
-  />
-);
-
 const GoldSphere: React.FC<{
   sphere: Sphere;
   frame: number;
   totalFrames: number;
+  width: number;
+  height: number;
   size: number;
   offsetX: number;
   offsetY: number;
   cellW: number;
   cellH: number;
-}> = ({ sphere, frame, totalFrames, size, offsetX, offsetY, cellW, cellH }) => {
+}> = ({ sphere, frame, totalFrames, width, height, size, offsetX, offsetY, cellW, cellH }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
   const pulse = 0.95 + 0.05 * Math.sin(t * TAU * 2 + sphere.phase);
@@ -106,7 +92,7 @@ const GoldSphere: React.FC<{
         width: s,
         height: s,
         borderRadius: "50%",
-        background: `conic-gradient(from ${rotation}deg at 50% 50%, #FFD700 0%, #B8860B 18%, #DAA520 36%, #8B6914 54%, #FFD700 72%, #F0E68D 90%, #FFD700 100%)`,
+        background: `conic-gradient(from ${rotation}deg at 50% 50%, #FFD700 0%, #DAA520 20%, #F0E68D 40%, #B8860B 60%, #FFD700 80%, #DAA520 100%)`,
         mixBlendMode: "screen",
         opacity: 0.97,
         willChange: "transform",
@@ -180,7 +166,7 @@ const Vignette: React.FC = () => (
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.97) 100%)",
+        "radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0.98) 100%)",
       pointerEvents: "none",
     }}
   />
@@ -194,16 +180,15 @@ export const GoldGrid: React.FC = () => {
   const globalRotation = t * 360;
   const cellW = width / GRID_COLS;
   const cellH = height / GRID_ROWS;
-  const gridWidth = GRID_COLS * cellW * GRID_OVERSCAN;
-  const gridHeight = GRID_ROWS * cellH * GRID_OVERSCAN;
+  const gridWidth = GRID_COLS * cellW;
+  const gridHeight = GRID_ROWS * cellH;
   const offsetX = (width - gridWidth) / 2;
   const offsetY = (height - gridHeight) / 2;
-  const size = Math.max(cellW, cellH) * 2.0;
+  const size = Math.min(cellW, cellH) * 0.95;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden" }}>
       <Background />
-      <BaseGold />
 
       <div
         style={{
@@ -219,6 +204,8 @@ export const GoldGrid: React.FC = () => {
             sphere={sphere}
             frame={frame}
             totalFrames={durationInFrames}
+            width={width}
+            height={height}
             size={size}
             offsetX={offsetX}
             offsetY={offsetY}
