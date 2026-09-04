@@ -12,8 +12,9 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const GRID_COLS = 10;
-const GRID_ROWS = 8;
+const COLS = 8;
+const ROWS = 6;
+const PADDING = 3;
 
 interface Sphere {
   id: number;
@@ -25,14 +26,16 @@ interface Sphere {
 
 const SPHERES: Sphere[] = (() => {
   const spheres: Sphere[] = [];
-  for (let row = 0; row < GRID_ROWS; row++) {
-    for (let col = 0; col < GRID_COLS; col++) {
-      const r = mulberry32(1000 + row * GRID_COLS + col);
+  const totalCols = COLS + PADDING * 2;
+  const totalRows = ROWS + PADDING * 2;
+  for (let row = 0; row < totalRows; row++) {
+    for (let col = 0; col < totalCols; col++) {
+      const r = mulberry32(1000 + row * totalCols + col);
       const speeds = [1, 2, 3, 4, 5, 6];
       spheres.push({
-        id: row * GRID_COLS + col,
-        col,
-        row,
+        id: row * totalCols + col,
+        col: col - PADDING,
+        row: row - PADDING,
         speed: speeds[(col + row) % speeds.length],
         phase: r() * TAU,
       });
@@ -60,41 +63,40 @@ const GRAIN = Array.from({ length: 180 }, (_, i) => {
 });
 
 const Background: React.FC = () => (
-  <div style={{ position: "absolute", inset: 0, background: "#000000" }} />
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.95) 0%, rgba(218,165,32,0.8) 30%, rgba(184,134,11,0.6) 55%, rgba(139,105,20,0.4) 75%, rgba(0,0,0,0.1) 100%)",
+    }}
+  />
 );
 
 const GoldSphere: React.FC<{
   sphere: Sphere;
   frame: number;
   totalFrames: number;
-  width: number;
-  height: number;
+  x: number;
+  y: number;
   size: number;
-  offsetX: number;
-  offsetY: number;
-  cellW: number;
-  cellH: number;
-}> = ({ sphere, frame, totalFrames, width, height, size, offsetX, offsetY, cellW, cellH }) => {
+}> = ({ sphere, frame, totalFrames, x, y, size }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
-  const pulse = 0.95 + 0.05 * Math.sin(t * TAU * 2 + sphere.phase);
-  const s = size * pulse;
-
-  const cx = offsetX + (sphere.col + 0.5) * cellW;
-  const cy = offsetY + (sphere.row + 0.5) * cellH;
+  const s = size;
 
   return (
     <div
       style={{
         position: "absolute",
-        left: cx - s / 2,
-        top: cy - s / 2,
+        left: x - s / 2,
+        top: y - s / 2,
         width: s,
         height: s,
         borderRadius: "50%",
-        background: `conic-gradient(from ${rotation}deg at 50% 50%, #FFD700 0%, #DAA520 20%, #F0E68D 40%, #B8860B 60%, #FFD700 80%, #DAA520 100%)`,
-        mixBlendMode: "screen",
-        opacity: 0.97,
+        background: `radial-gradient(circle at 35% 35%, #FFD700 0%, #DAA520 25%, #B8860B 50%, #8B6914 100%)`,
+        boxShadow: `inset 0 0 ${s * 0.15}px rgba(255,255,255,0.4), inset 0 0 ${s * 0.05}px rgba(0,0,0,0.3)`,
+        opacity: 0.98,
         willChange: "transform",
       }}
     />
@@ -166,7 +168,7 @@ const Vignette: React.FC = () => (
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0.98) 100%)",
+        "radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.97) 100%)",
       pointerEvents: "none",
     }}
   />
@@ -178,13 +180,21 @@ export const GoldGrid: React.FC = () => {
 
   const t = frame / durationInFrames;
   const globalRotation = t * 360;
-  const cellW = width / GRID_COLS;
-  const cellH = height / GRID_ROWS;
-  const gridWidth = GRID_COLS * cellW;
-  const gridHeight = GRID_ROWS * cellH;
-  const offsetX = (width - gridWidth) / 2;
-  const offsetY = (height - gridHeight) / 2;
-  const size = Math.min(cellW, cellH) * 0.95;
+
+  const cellW = width / COLS;
+  const cellH = height / ROWS;
+  const size = Math.min(cellW, cellH) * 1.08;
+
+  const gridPixelW = COLS * cellW;
+  const gridPixelH = ROWS * cellH;
+  const offsetX = (width - gridPixelW) / 2;
+  const offsetY = (height - gridPixelH) / 2;
+
+  const spheres = SPHERES.map((sphere) => {
+    const cx = offsetX + (sphere.col + 0.5) * cellW;
+    const cy = offsetY + (sphere.row + 0.5) * cellH;
+    return { ...sphere, cx, cy };
+  });
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden" }}>
@@ -198,19 +208,15 @@ export const GoldGrid: React.FC = () => {
           transformOrigin: "center center",
         }}
       >
-        {SPHERES.map((sphere) => (
+        {spheres.map((sphere) => (
           <GoldSphere
             key={sphere.id}
             sphere={sphere}
             frame={frame}
             totalFrames={durationInFrames}
-            width={width}
-            height={height}
+            x={sphere.cx}
+            y={sphere.cy}
             size={size}
-            offsetX={offsetX}
-            offsetY={offsetY}
-            cellW={cellW}
-            cellH={cellH}
           />
         ))}
       </div>
