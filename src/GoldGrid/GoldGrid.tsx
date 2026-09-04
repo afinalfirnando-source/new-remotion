@@ -67,6 +67,18 @@ const Background: React.FC = () => (
   <div style={{ position: "absolute", inset: 0, background: "#000000" }} />
 );
 
+const BaseGold: React.FC = () => (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      background:
+        "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.85) 0%, rgba(218,165,32,0.65) 30%, rgba(184,134,11,0.45) 55%, rgba(139,105,20,0.3) 75%, rgba(0,0,0,0.2) 100%)",
+      mixBlendMode: "screen",
+    }}
+  />
+);
+
 const GoldSphere: React.FC<{
   sphere: Sphere;
   frame: number;
@@ -186,11 +198,12 @@ export const GoldGrid: React.FC = () => {
   const gridHeight = GRID_ROWS * cellH * GRID_OVERSCAN;
   const offsetX = (width - gridWidth) / 2;
   const offsetY = (height - gridHeight) / 2;
-  const size = Math.max(cellW, cellH) * 1.5;
+  const size = Math.max(cellW, cellH) * 2.0;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden" }}>
       <Background />
+      <BaseGold />
 
       <div
         style={{
