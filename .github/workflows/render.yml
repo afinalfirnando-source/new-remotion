@@ -19,14 +19,6 @@ on:
           - GoldGrid-1080
           - GoldGridTight
           - GoldGridTight-1080
-          - NeonCircuitBoard
-          - NeonCircuitBoard-1080
-          - AuroraBorealis
-          - AuroraBorealis-1080
-          - LiquidGoldPour
-          - LiquidGoldPour-1080
-          - GeometricPulse
-          - GeometricPulse-1080
       quality:
         description: "Quality preset"
         required: true
