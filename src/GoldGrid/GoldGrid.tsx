@@ -189,7 +189,7 @@ export const GoldGrid: React.FC = () => {
   const globalRotation = t * 360;
   const cellW = width / GRID_COLS;
   const cellH = height / GRID_ROWS;
-  const size = Math.min(cellW, cellH) * 0.82;
+  const size = Math.max(cellW, cellH) * 1.35;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0f3460", overflow: "hidden" }}>
