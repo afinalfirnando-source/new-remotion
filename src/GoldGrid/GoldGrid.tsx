@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
 const TAU = Math.PI * 2;
@@ -25,7 +25,7 @@ interface Sphere {
   orbitRadius: number;
 }
 
-const SPHERES: Sphere[] = useMemo(() => {
+const SPHERES: Sphere[] = (() => {
   const spheres: Sphere[] = [];
   for (let row = 0; row < GRID_ROWS; row++) {
     for (let col = 0; col < GRID_COLS; col++) {
@@ -42,7 +42,7 @@ const SPHERES: Sphere[] = useMemo(() => {
     }
   }
   return spheres;
-}, []);
+})();
 
 const SPECULARS = Array.from({ length: 8 }, (_, i) => {
   const r = mulberry32(2000 + i);
