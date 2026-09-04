@@ -19,6 +19,8 @@ on:
           - GoldGrid-1080
           - GoldGridTight
           - GoldGridTight-1080
+          - EtherealCrystal
+          - EtherealCrystal-1080
       quality:
         description: "Quality preset"
         required: true
