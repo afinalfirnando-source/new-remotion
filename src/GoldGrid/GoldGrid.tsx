@@ -13,8 +13,9 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const GRID_COLS = 8;
-const GRID_ROWS = 6;
+const GRID_COLS = 7;
+const GRID_ROWS = 5;
+const GRID_OVERSCAN = 1.35;
 
 interface Sphere {
   id: number;
@@ -70,14 +71,12 @@ const GoldSphere: React.FC<{
   sphere: Sphere;
   frame: number;
   totalFrames: number;
-  width: number;
-  height: number;
   size: number;
   offsetX: number;
   offsetY: number;
   cellW: number;
   cellH: number;
-}> = ({ sphere, frame, totalFrames, width, height, size, offsetX, offsetY, cellW, cellH }) => {
+}> = ({ sphere, frame, totalFrames, size, offsetX, offsetY, cellW, cellH }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
   const pulse = 0.95 + 0.05 * Math.sin(t * TAU * 2 + sphere.phase);
@@ -95,9 +94,9 @@ const GoldSphere: React.FC<{
         width: s,
         height: s,
         borderRadius: "50%",
-        background: `conic-gradient(from ${rotation}deg at 50% 50%, #FFD700 0%, #B8860B 20%, #DAA520 40%, #8B6914 60%, #FFD700 80%, #F0E68D 100%)`,
+        background: `conic-gradient(from ${rotation}deg at 50% 50%, #FFD700 0%, #B8860B 18%, #DAA520 36%, #8B6914 54%, #FFD700 72%, #F0E68D 90%, #FFD700 100%)`,
         mixBlendMode: "screen",
-        opacity: 0.95,
+        opacity: 0.97,
         willChange: "transform",
       }}
     />
@@ -169,7 +168,7 @@ const Vignette: React.FC = () => (
       position: "absolute",
       inset: 0,
       background:
-        "radial-gradient(ellipse at center, transparent 20%, rgba(15,52,96,0.5) 72%, rgba(10,20,40,0.95) 100%)",
+        "radial-gradient(ellipse at center, transparent 15%, rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.97) 100%)",
       pointerEvents: "none",
     }}
   />
@@ -183,14 +182,14 @@ export const GoldGrid: React.FC = () => {
   const globalRotation = t * 360;
   const cellW = width / GRID_COLS;
   const cellH = height / GRID_ROWS;
-  const gridWidth = GRID_COLS * cellW;
-  const gridHeight = GRID_ROWS * cellH;
+  const gridWidth = GRID_COLS * cellW * GRID_OVERSCAN;
+  const gridHeight = GRID_ROWS * cellH * GRID_OVERSCAN;
   const offsetX = (width - gridWidth) / 2;
   const offsetY = (height - gridHeight) / 2;
-  const size = Math.hypot(cellW, cellH);
+  const size = Math.max(cellW, cellH) * 1.5;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#0f3460", overflow: "hidden" }}>
+    <AbsoluteFill style={{ backgroundColor: "#000000", overflow: "hidden" }}>
       <Background />
 
       <div
@@ -207,8 +206,6 @@ export const GoldGrid: React.FC = () => {
             sphere={sphere}
             frame={frame}
             totalFrames={durationInFrames}
-            width={width}
-            height={height}
             size={size}
             offsetX={offsetX}
             offsetY={offsetY}
