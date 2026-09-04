@@ -94,8 +94,15 @@ const GoldSphere: React.FC<{
         width: s,
         height: s,
         borderRadius: "50%",
-        background: `radial-gradient(circle at 35% 35%, #FFD700 0%, #DAA520 25%, #B8860B 50%, #8B6914 100%)`,
-        boxShadow: `inset 0 0 ${s * 0.15}px rgba(255,255,255,0.4), inset 0 0 ${s * 0.05}px rgba(0,0,0,0.3)`,
+        background: `
+          radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 8%, transparent 25%),
+          radial-gradient(circle at 50% 50%, rgba(255,215,0,0.9) 0%, rgba(218,165,32,0.85) 30%, rgba(184,134,11,0.8) 55%, rgba(139,105,20,0.7) 78%, rgba(80,50,10,0.5) 100%)
+        `,
+        boxShadow: `
+          inset 0 -${s * 0.08}px ${s * 0.2}px rgba(0,0,0,0.5),
+          inset 0 ${s * 0.05}px ${s * 0.15}px rgba(255,255,255,0.3),
+          0 0 ${s * 0.3}px rgba(255,215,0,0.3)
+        `,
         opacity: 0.98,
         willChange: "transform",
       }}
