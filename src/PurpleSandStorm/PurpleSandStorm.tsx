@@ -3,11 +3,11 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 
 const IS_CI = typeof process !== "undefined" && process.env.CI === "true";
 
-const PARTICLE_BACK = IS_CI ? 600 : 1800;
-const PARTICLE_MID = IS_CI ? 700 : 2200;
-const PARTICLE_FRONT = IS_CI ? 300 : 1000;
-const DUST_COUNT = IS_CI ? 150 : 500;
-const SPARK_COUNT = IS_CI ? 100 : 300;
+const PARTICLE_BACK = IS_CI ? 300 : 1800;
+const PARTICLE_MID = IS_CI ? 400 : 2200;
+const PARTICLE_FRONT = IS_CI ? 150 : 1000;
+const DUST_COUNT = IS_CI ? 50 : 500;
+const SPARK_COUNT = IS_CI ? 50 : 300;
 
 const COLORS = {
   deepVoid: "#0a0014",
@@ -222,7 +222,7 @@ const ParticleLayer: React.FC<{
       style={{
         position: "absolute",
         inset: 0,
-        filter: blurAmount > 0 ? `blur(${blurAmount}px)` : undefined,
+        filter: blurAmount > 0 ? (IS_CI ? `blur(${blurAmount * 0.5}px)` : `blur(${blurAmount}px)`) : undefined,
       }}
     >
       {particles.map((p) => {
@@ -260,8 +260,8 @@ const ParticleLayer: React.FC<{
               backgroundColor: p.hue,
               opacity: p.intensity * twinkle,
               boxShadow: trail
-                ? `0 0 ${size * 2}px ${p.hue}, 0 0 ${size * 4}px ${p.hue}, ${size}px 0 ${size * 1.2}px ${p.hue}88, ${size * 2}px 0 ${size * 0.8}px ${p.hue}44`
-                : `0 0 ${size * 2.5}px ${p.hue}, 0 0 ${size * 5}px ${p.hue}`,
+                ? `0 0 ${size * 2}px ${p.hue}, ${size}px 0 ${size * 1.2}px ${p.hue}88, ${size * 2}px 0 ${size * 0.8}px ${p.hue}44`
+                : `0 0 ${size * 2.5}px ${p.hue}`,
               mixBlendMode: "screen",
               willChange: "transform, opacity",
             }}
@@ -301,7 +301,7 @@ const Sparks: React.FC<{ frame: number; totalFrames: number; width: number; heig
               borderRadius: "50%",
               backgroundColor: COLORS.pureWhite,
               opacity: twinkle * 0.9,
-              boxShadow: `0 0 ${sp.baseSize * 8}px ${COLORS.pureWhite}, 0 0 ${sp.baseSize * 20}px ${color}`,
+              boxShadow: `0 0 ${sp.baseSize * 8}px ${COLORS.pureWhite}, 0 0 ${sp.baseSize * 16}px ${color}`,
             }}
           />
         );

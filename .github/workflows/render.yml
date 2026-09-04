@@ -64,6 +64,7 @@ jobs:
             --pixel-format=yuv420p \
             --concurrency=${CONCURRENCY} \
             --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage" \
+            --log=verbose \
             --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage"
 
       - name: Upload
