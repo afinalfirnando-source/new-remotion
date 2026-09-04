@@ -13,8 +13,8 @@ const mulberry32 = (seed: number) => {
   };
 };
 
-const GRID_COLS = 6;
-const GRID_ROWS = 4;
+const GRID_COLS = 8;
+const GRID_ROWS = 6;
 
 interface Sphere {
   id: number;
@@ -63,36 +63,7 @@ const GRAIN = Array.from({ length: 180 }, (_, i) => {
 });
 
 const Background: React.FC = () => (
-  <>
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background:
-          "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.25) 0%, rgba(218,165,32,0.15) 40%, transparent 70%)",
-        mixBlendMode: "screen",
-      }}
-    />
-  </>
-);
-
-const BaseGold: React.FC = () => (
-  <div
-    style={{
-      position: "absolute",
-      inset: 0,
-      background:
-        "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.35) 0%, rgba(184,134,11,0.2) 35%, rgba(139,105,20,0.1) 60%, transparent 80%)",
-      mixBlendMode: "screen",
-    }}
-  />
+  <div style={{ position: "absolute", inset: 0, background: "#000000" }} />
 );
 
 const GoldSphere: React.FC<{
@@ -102,25 +73,25 @@ const GoldSphere: React.FC<{
   width: number;
   height: number;
   size: number;
-}> = ({ sphere, frame, totalFrames, width, height, size }) => {
+  offsetX: number;
+  offsetY: number;
+  cellW: number;
+  cellH: number;
+}> = ({ sphere, frame, totalFrames, width, height, size, offsetX, offsetY, cellW, cellH }) => {
   const t = frame / totalFrames;
   const rotation = sphere.phase + t * 360 * sphere.speed;
   const pulse = 0.95 + 0.05 * Math.sin(t * TAU * 2 + sphere.phase);
   const s = size * pulse;
 
-  const cellW = width / GRID_COLS;
-  const cellH = height / GRID_ROWS;
-  const cx = (sphere.col + 0.5) * cellW;
-  const cy = (sphere.row + 0.5) * cellH;
-  const driftX = Math.sin(t * TAU * 1 + sphere.phase) * sphere.orbitRadius;
-  const driftY = Math.cos(t * TAU * 1 + sphere.phase) * sphere.orbitRadius * 0.7;
+  const cx = offsetX + (sphere.col + 0.5) * cellW;
+  const cy = offsetY + (sphere.row + 0.5) * cellH;
 
   return (
     <div
       style={{
         position: "absolute",
-        left: cx + driftX - s / 2,
-        top: cy + driftY - s / 2,
+        left: cx - s / 2,
+        top: cy - s / 2,
         width: s,
         height: s,
         borderRadius: "50%",
@@ -212,12 +183,15 @@ export const GoldGrid: React.FC = () => {
   const globalRotation = t * 360;
   const cellW = width / GRID_COLS;
   const cellH = height / GRID_ROWS;
-  const size = Math.max(cellW, cellH) * 1.18;
+  const gridWidth = GRID_COLS * cellW;
+  const gridHeight = GRID_ROWS * cellH;
+  const offsetX = (width - gridWidth) / 2;
+  const offsetY = (height - gridHeight) / 2;
+  const size = Math.hypot(cellW, cellH);
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0f3460", overflow: "hidden" }}>
       <Background />
-      <BaseGold />
 
       <div
         style={{
@@ -236,6 +210,10 @@ export const GoldGrid: React.FC = () => {
             width={width}
             height={height}
             size={size}
+            offsetX={offsetX}
+            offsetY={offsetY}
+            cellW={cellW}
+            cellH={cellH}
           />
         ))}
       </div>
