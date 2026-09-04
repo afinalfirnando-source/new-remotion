@@ -63,11 +63,34 @@ const GRAIN = Array.from({ length: 180 }, (_, i) => {
 });
 
 const Background: React.FC = () => (
+  <>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        background:
+          "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.25) 0%, rgba(218,165,32,0.15) 40%, transparent 70%)",
+        mixBlendMode: "screen",
+      }}
+    />
+  </>
+);
+
+const BaseGold: React.FC = () => (
   <div
     style={{
       position: "absolute",
       inset: 0,
-      background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      background:
+        "radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.35) 0%, rgba(184,134,11,0.2) 35%, rgba(139,105,20,0.1) 60%, transparent 80%)",
+      mixBlendMode: "screen",
     }}
   />
 );
@@ -189,11 +212,12 @@ export const GoldGrid: React.FC = () => {
   const globalRotation = t * 360;
   const cellW = width / GRID_COLS;
   const cellH = height / GRID_ROWS;
-  const size = Math.max(cellW, cellH) * 1.35;
+  const size = Math.max(cellW, cellH) * 1.55;
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#0f3460", overflow: "hidden" }}>
       <Background />
+      <BaseGold />
 
       <div
         style={{
