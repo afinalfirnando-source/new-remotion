@@ -3,6 +3,7 @@ import { Composition } from "remotion";
 import { LaserShow } from "./LaserShow/LaserShow";
 import { PurpleSandStorm } from "./PurpleSandStorm/PurpleSandStorm";
 import { LiquidChrome } from "./LiquidChrome/LiquidChrome";
+import { GoldGrid } from "./GoldGrid/GoldGrid";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -50,6 +51,22 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="LiquidChrome-1080"
         component={LiquidChrome}
+        durationInFrames={960}
+        fps={60}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="GoldGrid"
+        component={GoldGrid}
+        durationInFrames={960}
+        fps={60}
+        width={3840}
+        height={2160}
+      />
+      <Composition
+        id="GoldGrid-1080"
+        component={GoldGrid}
         durationInFrames={960}
         fps={60}
         width={1920}
