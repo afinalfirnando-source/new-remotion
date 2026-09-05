@@ -1,0 +1,166 @@
+name: Render All (~50MB per video)
+
+# Render semua 12 komposisi (6 tema x 4K + 1080p).
+# Target ukuran ~50MB per file via video-bitrate yang disesuaikan durasi:
+#   15 detik (900f)  -> 26M  = 26*15/8  = ~48.7MB
+#   20 detik (1200f) -> 20M  = 20*20/8  = ~50MB
+#   16 detik (960f)  -> 25M  = 25*16/8  = ~50MB
+#
+# Cara pakai: tab Actions -> "Render All (~50MB per video)" -> Run workflow.
+# Setiap video jadi artifact terpisah, juga digabung di summary.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Pilih yang di-render"
+        required: true
+        type: choice
+        default: "all"
+        options:
+          - all
+          - 4k-only
+          - 1080-only
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      CI: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - composition: LaserShow
+            bitrate: 26M
+            concurrency: 2
+            output: out/laser-show-4k.mp4
+            res: 4k
+          - composition: LaserShow-1080
+            bitrate: 26M
+            concurrency: 4
+            output: out/laser-show-1080.mp4
+            res: "1080"
+          - composition: PurpleSandStorm
+            bitrate: 20M
+            concurrency: 2
+            output: out/sand-storm-4k.mp4
+            res: 4k
+          - composition: PurpleSandStorm-1080
+            bitrate: 20M
+            concurrency: 4
+            output: out/sand-storm-1080.mp4
+            res: "1080"
+          - composition: LiquidChrome
+            bitrate: 25M
+            concurrency: 2
+            output: out/liquid-chrome-4k.mp4
+            res: 4k
+          - composition: LiquidChrome-1080
+            bitrate: 25M
+            concurrency: 4
+            output: out/liquid-chrome-1080.mp4
+            res: "1080"
+          - composition: GoldGrid
+            bitrate: 25M
+            concurrency: 2
+            output: out/gold-grid-4k.mp4
+            res: 4k
+          - composition: GoldGrid-1080
+            bitrate: 25M
+            concurrency: 4
+            output: out/gold-grid-1080.mp4
+            res: "1080"
+          - composition: GoldGridTight
+            bitrate: 25M
+            concurrency: 2
+            output: out/gold-grid-tight-4k.mp4
+            res: 4k
+          - composition: GoldGridTight-1080
+            bitrate: 25M
+            concurrency: 4
+            output: out/gold-grid-tight-1080.mp4
+            res: "1080"
+          - composition: EtherealCrystal
+            bitrate: 25M
+            concurrency: 2
+            output: out/ethereal-crystal-4k.mp4
+            res: 4k
+          - composition: EtherealCrystal-1080
+            bitrate: 25M
+            concurrency: 4
+            output: out/ethereal-crystal-1080.mp4
+            res: "1080"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Filter target
+        id: filter
+        run: |
+          TARGET="${{ inputs.target || 'all' }}"
+          echo "target=$TARGET res=${{ matrix.res }}" >> "$GITHUB_OUTPUT"
+          if [ "$TARGET" = "all" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [ "$TARGET" = "4k-only" ] && [ "${{ matrix.res }}" = "4k" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [ "$TARGET" = "1080-only" ] && [ "${{ matrix.res }}" = "1080" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [ "$TARGET" = "all" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.filter.outputs.skip == 'false'
+        run: npm ci --no-audit --no-fund
+
+      - name: Ensure Chrome browser
+        if: steps.filter.outputs.skip == 'false'
+        run: npx remotion browser ensure
+
+      - name: Typecheck
+        if: steps.filter.outputs.skip == 'false'
+        run: npm run typecheck
+
+      - name: Render ${{ matrix.composition }}
+        if: steps.filter.outputs.skip == 'false'
+        run: |
+          mkdir -p out
+          npx remotion render "${{ matrix.composition }}" "${{ matrix.output }}" \
+            --codec=h264 \
+            --pixel-format=yuv420p \
+            --video-bitrate=${{ matrix.bitrate }} \
+            --concurrency=${{ matrix.concurrency }} \
+            --overwrite \
+            --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage" \
+            --log=verbose
+
+      - name: Check size (~50MB target)
+        if: steps.filter.outputs.skip == 'false'
+        run: |
+          ls -lh "${{ matrix.output }}"
+          SIZE_MB=$(du -m "${{ matrix.output }}" | cut -f1)
+          SIZE_BYTES=$(stat -c%s "${{ matrix.output }}")
+          echo "### ${{ matrix.composition }}: ${SIZE_MB} MB (${SIZE_BYTES} bytes, bitrate ${{ matrix.bitrate }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "File: ${{ matrix.output }} = ${SIZE_MB} MB"
+          # Warning saja jika meleset jauh (di bawah 30MB atau di atas 70MB)
+          if [ "$SIZE_MB" -lt 30 ] || [ "$SIZE_MB" -gt 70 ]; then
+            echo "::warning::${{ matrix.composition }} size ${SIZE_MB}MB jauh dari target 50MB"
+          fi
+
+      - name: Upload ${{ matrix.composition }}
+        if: steps.filter.outputs.skip == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.composition }}-50mb
+          path: ${{ matrix.output }}
+          if-no-files-found: error
+          retention-days: 14

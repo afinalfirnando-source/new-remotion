@@ -60,17 +60,32 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Ensure Chrome browser
+        run: npx remotion browser ensure
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Render
         run: |
           mkdir -p out
+          # Target ~50MB: 15s->26M, 20s->20M, 16s->25M (lihat render-all.yml)
+          case "$COMPOSITION" in
+            *SandStorm*) BITRATE="20M" ;;
+            *LaserShow*) BITRATE="26M" ;;
+            *) BITRATE="25M" ;;
+          esac
+          echo "Rendering $COMPOSITION with video-bitrate $BITRATE (~50MB target)"
           npx remotion render "$COMPOSITION" "out/${COMPOSITION}.mp4" \
+            --codec=h264 \
             --pixel-format=yuv420p \
+            --video-bitrate="$BITRATE" \
             --concurrency=${CONCURRENCY} \
+            --overwrite \
             --chromium-flags="--no-sandbox --disable-gpu --disable-dev-shm-usage" \
             --log=verbose
+          ls -lh "out/${COMPOSITION}.mp4"
+          du -m "out/${COMPOSITION}.mp4"
 
       - name: Upload
         uses: actions/upload-artifact@v4
