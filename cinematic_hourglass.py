@@ -14,7 +14,7 @@ scene.render.fps = 60
 scene.frame_start = 1
 scene.frame_end = 720  # 12 seconds at 60fps
 scene.render.image_settings.file_format = 'PNG'
-scene.render.filepath = "C:/Users/ADVAN/output/frame_"
+scene.render.filepath = "output/frame_"
 scene.render.use_motion_blur = True
 scene.render.motion_blur_shutter = 0.5
 scene.render.use_compositing = True
@@ -331,7 +331,9 @@ print("=" * 60)
 
 # Clean old frames
 import os
-frame_dir = "C:/Users/ADVAN/output"
+frame_dir = "output"
+if not os.path.exists(frame_dir):
+    os.makedirs(frame_dir)
 for f in os.listdir(frame_dir):
     if f.startswith("frame_") and f.endswith(".png"):
         os.remove(os.path.join(frame_dir, f))
@@ -341,11 +343,11 @@ bpy.ops.render.render(animation=True)
 print("Render completed!")
 
 # Encode to video using FFmpeg
-video_output = "C:/Users/ADVAN/output/cinematic_hourglass_4k.mp4"
+video_output = "output/cinematic_hourglass.mp4"
 ffmpeg_cmd = [
     'ffmpeg', '-y',
     '-framerate', str(scene.render.fps),
-    '-i', 'C:/Users/ADVAN/output/frame_%04d.png',
+    '-i', 'output/frame_%04d.png',
     '-c:v', 'libx264',
     '-pix_fmt', 'yuv420p',
     '-crf', '18',
