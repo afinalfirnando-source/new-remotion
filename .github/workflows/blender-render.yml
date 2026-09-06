@@ -50,7 +50,21 @@ jobs:
 
       - name: Run Blender render
         run: |
-          blender --background --python "${{ env.SCRIPT }}"
+          echo "Running Blender render..."
+          echo "Script: ${{ env.SCRIPT }}"
+          echo "Working directory: $(pwd)"
+          echo "Python script contents (first 50 lines):"
+          head -50 "${{ env.SCRIPT }}"
+          echo ""
+          echo "Starting Blender render..."
+          blender --background --python "${{ env.SCRIPT }}" 2>&1 | tee blender_output.log
+          BLENDER_EXIT_CODE=${PIPESTATUS[0]}
+          echo "Blender exit code: $BLENDER_EXIT_CODE"
+          if [ $BLENDER_EXIT_CODE -ne 0 ]; then
+            echo "ERROR: Blender failed with exit code $BLENDER_EXIT_CODE"
+            exit 1
+          fi
+          echo ""
           echo "Listing output directory:"
           ls -la output/
           echo "Checking for rendered frames:"
