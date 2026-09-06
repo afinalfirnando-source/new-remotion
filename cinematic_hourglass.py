@@ -341,9 +341,22 @@ print("  - Compositing: Color grading + Lens flare")
 print("=" * 60)
 print("STARTING RENDER...")
 print("=" * 60)
+print(f"Scene: {scene.name}")
+print(f"Camera: {scene.camera.name if scene.camera else 'None'}")
+print(f"Engine: {scene.render.engine}")
+print(f"Resolution: {scene.render.resolution_x}x{scene.render.resolution_y}")
+print(f"FPS: {scene.render.fps}")
+print(f"Frames: {scene.frame_start} - {scene.frame_end}")
+print(f"Output path: {scene.render.filepath}")
+print(f"File format: {scene.render.image_settings.file_format}")
+print(f"Motion blur: {scene.render.use_motion_blur}")
+print(f"Compositing: {scene.render.use_compositing}")
+print(f"Current frame: {scene.frame_current}")
+print("=" * 60)
 
 # Clean old frames
 frame_dir = OUTPUT_DIR
+print(f"Cleaning old frames in: {frame_dir}")
 for f in os.listdir(frame_dir):
     if f.startswith("frame_") and f.endswith(".png"):
         os.remove(os.path.join(frame_dir, f))
@@ -351,17 +364,35 @@ for f in os.listdir(frame_dir):
 # Render animation
 print("Starting render...")
 try:
-    bpy.ops.render.render(animation=True)
+    result = bpy.ops.render.render(animation=True)
+    print(f"Render result: {result}")
     print("Render completed successfully!")
 except Exception as e:
-    print(f"Render failed: {e}")
+    print(f"Render failed with exception: {e}")
+    import traceback
+    traceback.print_exc()
     sys.exit(1)
+
+# Check if render directory exists and list contents
+print(f"Checking output directory: {OUTPUT_DIR}")
+if os.path.exists(OUTPUT_DIR):
+    print(f"Output directory exists. Contents:")
+    files = os.listdir(OUTPUT_DIR)
+    for f in files:
+        print(f"  - {f} ({os.path.getsize(os.path.join(OUTPUT_DIR, f))} bytes)")
+else:
+    print("ERROR: Output directory does not exist!")
 
 # Verify frames were created
 frame_files = [f for f in os.listdir(OUTPUT_DIR) if f.startswith("frame_") and f.endswith(".png")]
 print(f"Total frames rendered: {len(frame_files)}")
 if len(frame_files) == 0:
     print("ERROR: No frames were rendered!")
+    print("This could be due to:")
+    print("1. Blender failed to render silently")
+    print("2. Output path is incorrect")
+    print("3. Scene has no objects to render")
+    print("4. Camera is not pointing at anything")
     sys.exit(1)
 
 # Encode to video using FFmpeg
