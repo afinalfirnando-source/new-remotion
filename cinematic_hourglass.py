@@ -2,6 +2,8 @@ import bpy
 import math
 import random
 from mathutils import Vector
+import os
+import sys
 
 # ========================
 # SCENE & RENDER SETUP
@@ -14,15 +16,26 @@ scene.render.fps = 60
 scene.frame_start = 1
 scene.frame_end = 720  # 12 seconds at 60fps
 scene.render.image_settings.file_format = 'PNG'
-scene.render.filepath = "output/frame_"
+
+# Use absolute path for reliability
+OUTPUT_DIR = os.path.join(os.getcwd(), "output")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+scene.render.filepath = os.path.join(OUTPUT_DIR, "frame_")
+
 scene.render.use_motion_blur = True
 scene.render.motion_blur_shutter = 0.5
 scene.render.use_compositing = True
 
+print(f"Output directory: {OUTPUT_DIR}")
+print(f"Render filepath: {scene.render.filepath}")
+
 # Color management for cinematic look
-scene.view_settings.look = 'AgX - Base Contrast'
-scene.view_settings.view_transform = 'AgX'
-scene.display_settings.display_device = 'sRGB'
+try:
+    scene.view_settings.look = 'AgX - Base Contrast'
+    scene.view_settings.view_transform = 'AgX'
+    scene.display_settings.display_device = 'sRGB'
+except Exception as e:
+    print(f"Color management warning: {e}")
 
 # ========================
 # LIGHTING (HDR / Cinematic)
@@ -330,24 +343,22 @@ print("STARTING RENDER...")
 print("=" * 60)
 
 # Clean old frames
-import os
-frame_dir = "output"
-if not os.path.exists(frame_dir):
-    os.makedirs(frame_dir)
+frame_dir = OUTPUT_DIR
 for f in os.listdir(frame_dir):
     if f.startswith("frame_") and f.endswith(".png"):
         os.remove(os.path.join(frame_dir, f))
 
 # Render animation
+print("Starting render...")
 bpy.ops.render.render(animation=True)
 print("Render completed!")
 
 # Encode to video using FFmpeg
-video_output = "output/cinematic_hourglass.mp4"
+video_output = os.path.join(OUTPUT_DIR, "cinematic_hourglass.mp4")
 ffmpeg_cmd = [
     'ffmpeg', '-y',
     '-framerate', str(scene.render.fps),
-    '-i', 'output/frame_%04d.png',
+    '-i', os.path.join(OUTPUT_DIR, 'frame_%04d.png'),
     '-c:v', 'libx264',
     '-pix_fmt', 'yuv420p',
     '-crf', '18',
