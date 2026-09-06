@@ -350,8 +350,19 @@ for f in os.listdir(frame_dir):
 
 # Render animation
 print("Starting render...")
-bpy.ops.render.render(animation=True)
-print("Render completed!")
+try:
+    bpy.ops.render.render(animation=True)
+    print("Render completed successfully!")
+except Exception as e:
+    print(f"Render failed: {e}")
+    sys.exit(1)
+
+# Verify frames were created
+frame_files = [f for f in os.listdir(OUTPUT_DIR) if f.startswith("frame_") and f.endswith(".png")]
+print(f"Total frames rendered: {len(frame_files)}")
+if len(frame_files) == 0:
+    print("ERROR: No frames were rendered!")
+    sys.exit(1)
 
 # Encode to video using FFmpeg
 video_output = os.path.join(OUTPUT_DIR, "cinematic_hourglass.mp4")
