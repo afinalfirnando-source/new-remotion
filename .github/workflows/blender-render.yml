@@ -51,9 +51,14 @@ jobs:
       - name: Run Blender render
         run: |
           blender --background --python "${{ env.SCRIPT }}"
+          echo "Listing output directory:"
+          ls -la output/
+          echo "Checking for rendered frames:"
+          ls -la output/frame_*.png || echo "No frames found!"
 
       - name: Encode video with FFmpeg
         run: |
+          ls -la output/
           ffmpeg -y -framerate 60 -i output/frame_%04d.png \
             -c:v libx264 -pix_fmt yuv420p -crf 18 -preset slow \
             output/${{ env.OUTPUT_NAME }}.mp4
