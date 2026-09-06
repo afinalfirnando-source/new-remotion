@@ -1,0 +1,56 @@
+name: Blender Cinematic Render
+
+on:
+  workflow_dispatch:
+    inputs:
+      frames:
+        description: 'Number of frames to render (max 720 for full 12s)'
+        required: false
+        default: '720'
+      resolution:
+        description: 'Resolution: 1080 or 4K'
+        required: false
+        default: '1080'
+        type: choice
+        options:
+          - 1080
+          - 4K
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender ffmpeg
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Run Blender render
+        run: |
+          blender --background --python output/cinematic_hourglass.py
+
+      - name: Encode video with FFmpeg
+        run: |
+          ffmpeg -y -framerate 60 -i output/frame_%04d.png \
+            -c:v libx264 -pix_fmt yuv420p -crf 18 -preset slow \
+            output/cinematic_hourglass.mp4
+
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
+        with:
+          name: cinematic-hourglass
+          path: output/cinematic_hourglass.mp4
+          retention-days: 7
+
+      - name: Upload sample frames
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-frames
+          path: output/frame_*.png
+          retention-days: 7
